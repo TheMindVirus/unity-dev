@@ -1,0 +1,52 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Driving : MonoBehaviour
+{
+    public GameObject WheelFrontLeft;
+    public GameObject WheelFrontRight;
+    public GameObject WheelRearLeft;
+    public GameObject WheelRearRight;
+
+    private WheelCollider FrontLeft;
+    private WheelCollider FrontRight;
+    private WheelCollider RearLeft;
+    private WheelCollider RearRight;
+
+    private float torque = 0.0f;
+    private float steering = 0.0f;
+
+    private Vector3 pos = new Vector3(0.0f, 0.0f, 0.0f);
+    private Quaternion rot = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        FrontLeft = WheelFrontLeft.GetComponent<WheelCollider>();
+        FrontRight = WheelFrontRight.GetComponent<WheelCollider>();
+        RearLeft = WheelRearLeft.GetComponent<WheelCollider>();
+        RearRight = WheelRearRight.GetComponent<WheelCollider>();
+        torque = 600.0f;
+        steering = 5.0f;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        SetTorque(FrontLeft, torque * Input.GetAxis("Vertical"), 0.0f);
+        SetTorque(FrontRight, torque * Input.GetAxis("Vertical"), 0.0f);
+        SetTorque(RearLeft, torque * Input.GetAxis("Vertical"), 0.0f);
+        SetTorque(RearRight, torque * Input.GetAxis("Vertical"), 0.0f);
+        SetSteering(FrontLeft, steering * Input.GetAxis("Horizontal"));
+        SetSteering(FrontRight, steering * Input.GetAxis("Horizontal"));
+        UpdateVisuals(FrontLeft, WheelFrontLeft);
+        UpdateVisuals(FrontRight, WheelFrontRight);
+        UpdateVisuals(RearLeft, WheelRearLeft);
+        UpdateVisuals(RearRight, WheelRearRight);
+    }
+
+    public void SetTorque(WheelCollider collider, float motor, float brake) { collider.motorTorque = motor; collider.brakeTorque = brake; }
+    public void SetSteering(WheelCollider collider, float angle) { collider.steerAngle = angle; }
+    public void UpdateVisuals(WheelCollider collider, GameObject gameobject) { collider.GetWorldPose(out pos, out rot); gameobject.transform.position = pos; gameobject.transform.rotation = rot; }
+}

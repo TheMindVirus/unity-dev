@@ -1,0 +1,13 @@
+{
+    "Anchor":
+    {
+        "SpawnPlayer": "[TEST1]",
+        "SpawnPlayer": "[TEST2]",
+        "SpawnPlayer": "[TEST3]",
+        "ListGameObjects": ""
+    },
+    "[TEST3]":
+    {
+        "SetData": "{\"alias\":\"[TEST0]\",\"position\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"rotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0}}"
+    }
+}

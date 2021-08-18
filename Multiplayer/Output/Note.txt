@@ -1,0 +1,2 @@
+The engine appears to have a few bugs. Some players do not load in as GameObjects,
+some command messages are not interpreted in order and there is a lack of networking.
