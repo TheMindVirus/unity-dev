@@ -13,7 +13,7 @@ but they are loosely based on the LEGO MicroGame Unity Project:
 https://learn.unity.com/project/lego-template
 
 Components of Ghost Mode already exist in many games such as Halo Forge, \
-but authors have been unwilling to share their work in an open-source and cross-platform manner.
+but authors have been unwilling to share their work in an open-source and cross-platform manner. \
 There is a much simpler and more abstract way of writing this code \
 but that didn't work yet, so this is it as a buggy mess instead:
 ```
