@@ -1,7 +1,5 @@
 # Ghost Mode
 
-![screenshot](https://github.com/themindvirus/unity-dev/blob/main/GhostMode/screenshot.png)
-
 In Ghost Mode a Player may fly around the game world looking for NPC's to Possess. \
 Once highlighted or hovered over, an NPC becomes a CursedNPC. \
 If a CursedNPC is selected by the Player then the CursedNPC becomes a PossessedNPC \
@@ -9,6 +7,8 @@ and the Player may control their movement and perform actions based on their abi
 A Player may also return back to Ghost Mode; the PossessedNPC returns back to being a normal NPC.
 
 Demo: https://themindvirus.github.io/unity-dev/GhostMode
+
+![screenshot](https://github.com/themindvirus/unity-dev/blob/main/GhostMode/screenshot.png)
 
 The source files and assets for this Unity Project are too large for GitHub \
 but they are loosely based on the LEGO MicroGame Unity Project:
