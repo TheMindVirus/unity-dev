@@ -1,6 +1,6 @@
 # Ghost Mode
 
-![screenshot](https://github.com/themindvirus/unity-dev/blob/main/screenshot.png)
+![screenshot](https://github.com/themindvirus/unity-dev/blob/main/GhostMode/screenshot.png)
 
 In Ghost Mode a Player may fly around the game world looking for NPC's to Possess. \
 Once highlighted or hovered over, an NPC becomes a CursedNPC. \
