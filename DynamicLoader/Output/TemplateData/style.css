@@ -14,5 +14,5 @@ body { padding: 0; margin: 0 }
 #unity-build-title { float: right; margin-right: 10px; line-height: 38px; font-family: arial; font-size: 18px }
 #unity-fullscreen-button { float: right; width: 38px; height: 38px; background: url('fullscreen-button.png') no-repeat center }
 #unity-warning { position: absolute; left: 50%; top: 5%; transform: translate(-50%); background: white; padding: 10px; display: none }
-#unity-assetbundle-url { position: absolute; top: 0; left: 0; width: 500px; height: 30px; box-shadow: inset 0 0 1px rgba(0, 0, 0, 1.00); font-weight: bold; }
-#unity-assetbundle-load { background: rgba(255, 0, 0, 1.00); position: absolute; top: 0; left: 510px; width: 100px; height: 35px; color: white; font-weight: bold; }
+#unity-assetbundle-url { position: absolute; top: 0; left: 0; width: 600px; height: 30px; box-shadow: inset 0 0 1px rgba(0, 0, 0, 1.00); font-weight: bold; }
+#unity-assetbundle-load { background: rgba(255, 0, 0, 1.00); position: absolute; top: 0; left: 610px; width: 100px; height: 35px; color: white; font-weight: bold; }
