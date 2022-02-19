@@ -6,5 +6,5 @@ Please note that C# Scripts don't work as they are not part of the format!
 
 Demo: https://themindvirus.github.io/unity-dev/DynamicLoader/Output/
 
-![screenshot](https://github.com/themindvirus/unity-dev/blob/main/DynamicLoader)
+![screenshot](https://github.com/themindvirus/unity-dev/blob/main/DynamicLoader/screenshot.png)
 
