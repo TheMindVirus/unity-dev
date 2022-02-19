@@ -1,6 +1,6 @@
 # Dynamic Loader
 
-A very early phases example of loading GameObjects from \
+A very early phases example of loading GameObjects from .unity3d \
 Unity AssetBundles Dynamically in Unity WebGL Player \
 Please note that C# Scripts don't work as they are not part of the format!
 
