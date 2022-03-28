@@ -1,0 +1,1 @@
+mergeInto(LibraryManager.library, { TriggerZone: function(zone) { TriggerZone(Pointer_stringify(zone)); } });
