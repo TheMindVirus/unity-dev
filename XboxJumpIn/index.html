@@ -54,7 +54,7 @@ var rate = 60000.0 / 127.0;
 var update = function()
 {
     var data = "";
-    var intensity = Math.sin((Date.now() % rate) * tau);
+    var intensity = -Math.sin(((Date.now() % rate) / rate) * tau); //Math.sin((Date.now() % rate) * tau);
     for (var i = 1; i <= 48; ++i) { data += intensity.toString() + ", "; }
     instance.SendMessage("Xbox", "SetLights", data);
 }
