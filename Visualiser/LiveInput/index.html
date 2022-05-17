@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | EQ LiveInput</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="./Build/Output.loader.js"></script>
+    <script>
+var instance = null;
+var container = null;
+var canvas = null;
+var loadingBar = null;
+var progressBarFull = null;
+var playButton = null;
+
+var buildUrl = "Build";
+var loaderUrl = buildUrl + "/Output.loader.js";
+var config =
+{
+    dataUrl: buildUrl + "/Output.data.unityweb",
+    frameworkUrl: buildUrl + "/Output.framework.js.unityweb",
+    codeUrl: buildUrl + "/Output.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "TheMindVirus",
+    productName: "EQ",
+    productVersion: "2.12",
+};
+
+var engine = null;
+var source = null;
+var scope = null;
+var levels = null;
+var bands = 32; // => 16
+
+var play = async function()
+{
+    container = document.querySelector("#unity-container");
+    canvas = document.querySelector("#unity-canvas");
+    loadingBar = document.querySelector("#unity-loading-bar");
+    progressBarFull = document.querySelector("#unity-progress-bar-full");
+    playButton = document.querySelector("#unity-play-button");
+    playButton.remove();
+
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.ondragstart = function(event) { event.preventDefault(); }
+
+    loadingBar.style.display = "block";
+
+    createUnityInstance(canvas, config, (progress) =>
+    {
+        progressBarFull.style.width = 100 * progress + "%";
+    }).then(async (unityInstance) =>
+    {
+        instance = unityInstance;
+        loadingBar.style.display = "none";
+        await navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => { capture(stream); }).catch((error) => { console.log(error); });
+        setTimeout("start()", 1);
+        setInterval("update()", 10);
+    }).catch((error) => { alert(error); });
+}
+
+var capture = (stream) =>
+{
+    console.log("[INFO]: Audio Engine Init");
+    engine = new window.AudioContext();
+    source = engine.createMediaStreamSource(stream); //NOT TO BE CONFUSED WITH `engine.createMediaElementSource(element);`
+    scope = engine.createAnalyser();
+    scope.minDecibels = -90;
+    scope.maxDecibels = -10;
+    scope.smoothingTimeConstant = 0.85;
+    scope.fftSize = bands;
+    levels = new Uint8Array(bands);
+    source.connect(scope);
+    scope.connect(engine.destination);
+}
+
+var start = () =>
+{
+    instance.SendMessage("Unity", "SetSkyboxThickness", 0.25);
+    instance.SendMessage("Unity", "SetSkyboxSkyTint", "1.0, 0.0, 0.1, 1.0");
+    instance.SendMessage("Unity", "SetGlassAlbedo", "1.0, 0.0, 0.01, 0.0");
+    instance.SendMessage("Unity", "SetGlassEmission", "1.0, 0.0, 0.01, 3.0");
+
+    instance.SendMessage("Unity", "SetWaterRefraction", "0.0, 0.0, 0.0, 0.0");
+
+/*
+    instance.SendMessage("Unity", "SetAmbientLight", "1.0, 1.0, 1.0, 1.0");
+    instance.SendMessage("Unity", "SetAmbientIntensity", 1.0);
+    instance.SendMessage("Unity", "SetAmbientAngle", "50.0, -30.0, 0.0");
+
+    instance.SendMessage("Unity", "SetSkyboxSunSize", 0.1);
+    instance.SendMessage("Unity", "SetSkyboxConvergence", 10.0);
+    instance.SendMessage("Unity", "SetSkyboxThickness", 1.0);
+    instance.SendMessage("Unity", "SetSkyboxExposure", 1.0);
+    instance.SendMessage("Unity", "SetSkyboxSkyTint", "0.5, 0.5, 0.5, 0.5");
+    instance.SendMessage("Unity", "SetSkyboxGround", "0.5, 0.5, 0.5, 0.5");
+
+    instance.SendMessage("Unity", "SetWaterRefraction", "0.0, 1.0, 1.0, 1.0"); 
+    instance.SendMessage("Unity", "SetWaterScale", 0.02);
+    instance.SendMessage("Unity", "SetWaterSpeed", "19.0, 9.0, -16.0, -7.0");
+
+    instance.SendMessage("Unity", "SetGlassAlbedo", "1.0, 1.0, 1.0, 0.0");
+    instance.SendMessage("Unity", "SetGlassMetallic", 0.5);
+    instance.SendMessage("Unity", "SetGlassSmoothness", 1.0);
+    instance.SendMessage("Unity", "SetGlassEmission", "0.0, 0.0, 0.0, 1.0");
+
+    instance.SendMessage("Unity", "SetBarLevels",
+        "0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
+*/
+}
+
+var update = () =>
+{
+    var data = "";
+    scope.getByteFrequencyData(levels);
+    for (var i = 0; i < bands; ++i)
+    {
+        data += (levels[i] / 100.0) + ", ";
+    }
+    instance.SendMessage("Unity", "SetBarLevels", data);
+}
+    </script>
+    <style>
+      * { box-sizing: border-box; margin: auto; text-align: center; overflow: hidden; }
+      body { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: black; }
+      .webgl-content { position: absolute; top: 0 left: 0; width: 100%; height: 100%; text-shadow: 1px 1px 10px white; }
+      .unityContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+      .footer { position: absolute; top: 0; width: 100%; height: 30px; background-color: cyan; box-shadow: 1px 1px 10px black; opacity: 0.5; }
+      .webgl-logo { position: relative; top: 0; left: 0; background-color: white; z-index: 9999; }
+      .fullscreen { position: relative; top: 0; right: 0; }
+      .title { position: relative; bottom: 0; font-weight: bold; }
+      #unity-play-button { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; color: red; background: black; border: none; font-size: 100pt; user-select: none; z-index: 9999; }
+    </style>
+  </head>
+  <body>
+    <button id="unity-play-button" onclick="play();">Play</button>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="100%" height="100%" onclick="requestPointerLock();"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
