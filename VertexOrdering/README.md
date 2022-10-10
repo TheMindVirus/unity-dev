@@ -27,3 +27,13 @@ and draw the framebuffer onto the billboard with alpha masked.
 Unity CG and ShaderLab do not know the concept of Push/Pop of graphics contexts like GLES does. \
 The outcome of using the grab pass is visual defects, input vertices multiplied by -2.0 and \
 no option to turn off visibility culling for when a 2D shader is actually 3D and goes off-screen.
+
+[screenshot3](/VertexOrdering/screenshot3.png)
+```
+/*
+something has happened there...x is looking correct...but y, z and w are offset...
+y and z are both 0.0, x and w are not 0.0, w is behaving consistently with the y axis...almost like a Vector3 alignment error
+[x, .., .., y] .., .., z, .., .., w, .., ..
+compiler rule will only let you read subscript [0]->[3], not any further where the data is
+*/
+```
