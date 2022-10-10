@@ -8,3 +8,4 @@ This is different again for Particle Instancing which provides the correct float
 (position, rotation, scale [xyzw]) which both the default and Instancing shaders do not obtain. 
 
 ![screenshot](/VertexOrdering/screenshot.png)
+![screenshot2](/VertexOrdering/screenshot2.png)
