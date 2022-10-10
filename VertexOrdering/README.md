@@ -14,7 +14,9 @@ inconsistent line endings on Windows which needs to be fixed by Notepad++. \
 The above example was required for drawing Billboards on default Cube mentioned previously.
 
 However, while this appears to draw and texture the Billboard, it does not respond correctly \
-to fragment shader code to cull the square into a circle of radius 0.5.
+to fragment shader code to cull the square into a circle of radius 0.5. \
+Other such ranges are -0.5->0.5 for vertices (should be -1.0->1.0 for local space) \
+and vertex position which gets multiplied by the screen resolution to give the fragment position.
 
 The Workaround for this is to use sampler2D and GrabPass to shade a circle on-screen, \
 restore the context with the grab pass (because there's no way of writing to sampler2D, backwards tex2D) \
