@@ -37,3 +37,20 @@ y and z are both 0.0, x and w are not 0.0, w is behaving consistently with the y
 compiler rule will only let you read subscript [0]->[3], not any further where the data is
 */
 ```
+The particle transform property is a float3x4 which is laid out with the following information:
+```
+/*
+[0].x = Scale X
+[0].y = Rotation Z
+[0].z = Rotation Y
+[0].w = Position X
+[1].x = Rotation Z (Again?)
+[1].y = Scale Y
+[1].z = Rotation X
+[1].w = Position Y
+[2].x = Rotation Y (Again?)
+[2].y = Rotation X (Again?)
+[2].z = Scale Z
+[2].w = Position Z
+*/
+```
