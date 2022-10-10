@@ -16,7 +16,8 @@ The above example was required for drawing Billboards on default Cube mentioned 
 However, while this appears to draw and texture the Billboard, it does not respond correctly \
 to fragment shader code to cull the square into a circle of radius 0.5. \
 Other such ranges are -0.5->0.5 for vertices (should be -1.0->1.0 for local space) \
-and vertex position which gets multiplied by \_ScreenParams to give the fragment position.
+and vertex position which gets pre-multiplied by \_ScreenParams to give the fragment position. \
+This needs to be divided back down, multiplied by 2.0 and then -1.0 to give a range of -1.0->1.0.
 
 The Workaround for this is to use sampler2D and GrabPass to shade a circle on-screen, \
 restore the context with the grab pass (because there's no way of writing to sampler2D, backwards tex2D) \
