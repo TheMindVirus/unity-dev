@@ -9,3 +9,6 @@ This is different again for Particle Instancing which provides the correct float
 
 ![screenshot](/VertexOrdering/screenshot.png)
 ![screenshot2](/VertexOrdering/screenshot2.png)
+The Model-View-Projection matrix is also being wrongly upgraded by Unity which also produces \
+inconsistent line endings on Windows which needs to be fixed by Notepad++. \
+The above example was required for drawing Billboards on default Cube mentioned previously.
