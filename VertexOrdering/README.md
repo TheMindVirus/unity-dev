@@ -28,7 +28,7 @@ Unity CG and ShaderLab do not know the concept of Push/Pop of graphics contexts 
 The outcome of using the grab pass is visual defects, input vertices multiplied by -2.0 and \
 no option to turn off visibility culling for when a 2D shader is actually 3D and goes off-screen.
 
-[screenshot3](/VertexOrdering/screenshot3.png)
+![screenshot3](/VertexOrdering/screenshot3.png)
 ```
 /*
 something has happened there...x is looking correct...but y, z and w are offset...
