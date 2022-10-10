@@ -54,3 +54,4 @@ input.data.transform[2].z = Scale Z
 input.data.transform[2].w = Position Z
 */
 ```
+![screenshot4](/VertexOrdering/screenshot4.png)
