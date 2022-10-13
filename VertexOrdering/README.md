@@ -83,3 +83,7 @@ This is consistent across all of Unity's transformation matrices and makes imple
 These matrices are not filled in for particles and it is expected that only in Direct3D11 that you must use the input position or the \
 Standard Particle Instancing extensions to get this data. This will then be different for e.g. a WebGL build. \
 The hand-encoded local position remains a constant point of reference but a custom vertex stream must be added to offset 3D Rotation.
+Here is an effort to offset this 3D Start Rotation Bug:
+![screenshot7](/VertexOrdering/screenshot7.png)
+The shader is able to correct the Y and Z rotation at the same time but there is a serious bug affecting the X-axis. \
+This may only affect Direct3D11 and Particles without extensions, otherwise the included matrices seem to work.
