@@ -87,3 +87,4 @@ Here is an effort to offset this 3D Start Rotation Bug:
 ![screenshot7](/VertexOrdering/screenshot7.png)
 The shader is able to correct the Y and Z rotation at the same time but there is a serious bug affecting the X-axis. \
 This may only affect Direct3D11 and Particles without extensions, otherwise the included matrices seem to work.
+The source for this fix can be found here: https://github.com/TheMindVirus/unity-dev/blob/e6981d8b221c0b698496a1ab4f0972e9f89cf717/VertexOrdering/SwarmVolume-3DStartRotation.shader#L142
