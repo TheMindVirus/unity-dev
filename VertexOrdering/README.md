@@ -60,15 +60,15 @@ It should perhaps be laid out a bit more like this:
 Further to this, to remap the vertices back to something usable as a local position for a shader,
 this mapping has to be added into the vertex program for Unity's primitive default cube:
 ```
-    uint id : SV_VERTEXID;
+uint id : SV_VERTEXID;
 ...
-    input.id = input.id % 24; //Only works on Unity 2021 Default Cube to circumvent WebGL Batching
-    if ((input.id ==  0) || (input.id == 13) || (input.id == 23)) { output.local = float3( 0.5, -0.5,  0.5); } //Magenta Corner
-    if ((input.id ==  1) || (input.id == 14) || (input.id == 16)) { output.local = float3(-0.5, -0.5,  0.5); } //Blue Corner
-    if ((input.id ==  2) || (input.id ==  8) || (input.id == 22)) { output.local = float3( 0.5,  0.5,  0.5); } //Most Significant Bit
-    if ((input.id ==  3) || (input.id ==  9) || (input.id == 17)) { output.local = float3(-0.5,  0.5,  0.5); } //Cyan Corner
-    if ((input.id ==  4) || (input.id == 10) || (input.id == 21)) { output.local = float3( 0.5,  0.5, -0.5); } //Yellow Corner
-    if ((input.id ==  5) || (input.id == 11) || (input.id == 18)) { output.local = float3(-0.5,  0.5, -0.5); } //Green Corner
-    if ((input.id ==  6) || (input.id == 12) || (input.id == 20)) { output.local = float3( 0.5, -0.5, -0.5); } //Red Corner
-    if ((input.id ==  7) || (input.id == 15) || (input.id == 19)) { output.local = float3(-0.5, -0.5, -0.5); } //Least Significant Bit
+input.id = input.id % 24; //Only works on Unity 2021 Default Cube to circumvent WebGL Batching
+if ((input.id ==  0) || (input.id == 13) || (input.id == 23)) { output.local = float3( 0.5, -0.5,  0.5); } //Magenta Corner
+if ((input.id ==  1) || (input.id == 14) || (input.id == 16)) { output.local = float3(-0.5, -0.5,  0.5); } //Blue Corner
+if ((input.id ==  2) || (input.id ==  8) || (input.id == 22)) { output.local = float3( 0.5,  0.5,  0.5); } //Most Significant Bit
+if ((input.id ==  3) || (input.id ==  9) || (input.id == 17)) { output.local = float3(-0.5,  0.5,  0.5); } //Cyan Corner
+if ((input.id ==  4) || (input.id == 10) || (input.id == 21)) { output.local = float3( 0.5,  0.5, -0.5); } //Yellow Corner
+if ((input.id ==  5) || (input.id == 11) || (input.id == 18)) { output.local = float3(-0.5,  0.5, -0.5); } //Green Corner
+if ((input.id ==  6) || (input.id == 12) || (input.id == 20)) { output.local = float3( 0.5, -0.5, -0.5); } //Red Corner
+if ((input.id ==  7) || (input.id == 15) || (input.id == 19)) { output.local = float3(-0.5, -0.5, -0.5); } //Least Significant Bit
 ```
