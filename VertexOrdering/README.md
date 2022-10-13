@@ -58,6 +58,10 @@ input.data.transform[2].w = Position Z
 
 It should perhaps be laid out a bit more like this:
 ![screenshot5](/VertexOrdering/screenshot5.png)
+
+...or perhaps how people are expecting to use it, a space-optimised float3x3 matrix like this:
+![screenshot6](/VertexOrdering/screenshot6.png)
+
 Further to this, to remap the vertices back to something usable as a local position for a shader,
 this mapping has to be added into the vertex program for Unity's primitive default cube:
 ```
