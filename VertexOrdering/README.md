@@ -62,7 +62,7 @@ this mapping has to be added into the vertex program for Unity's primitive defau
 ```
 uint id : SV_VERTEXID;
 ...
-input.id = input.id % 24; //Only works on Unity 2021 Default Cube to circumvent WebGL Batching
+input.id = input.id % 24; //Only works on Unity 2021 Default Cube to circumvent WebGL Batching For Particles
 if ((input.id ==  0) || (input.id == 13) || (input.id == 23)) { output.local = float3( 0.5, -0.5,  0.5); } //Magenta Corner
 if ((input.id ==  1) || (input.id == 14) || (input.id == 16)) { output.local = float3(-0.5, -0.5,  0.5); } //Blue Corner
 if ((input.id ==  2) || (input.id ==  8) || (input.id == 22)) { output.local = float3( 0.5,  0.5,  0.5); } //Most Significant Bit
@@ -72,3 +72,8 @@ if ((input.id ==  5) || (input.id == 11) || (input.id == 18)) { output.local = f
 if ((input.id ==  6) || (input.id == 12) || (input.id == 20)) { output.local = float3( 0.5, -0.5, -0.5); } //Red Corner
 if ((input.id ==  7) || (input.id == 15) || (input.id == 19)) { output.local = float3(-0.5, -0.5, -0.5); } //Least Significant Bit
 ```
+The Unity_ObjectToWorld matrix is similar to the first above float3x4 matrix but is a 4x4 matrix laid out the same way as the 3x4 one. \
+This is consistent across all of Unity's transformation matrices and makes implementing multiplication for rotation a bit more complex. \
+These matrices are not filled in for particles and it is expected that only in Direct3D11 that you must use the input position or the \
+Standard Particle Instancing extensions to get this data. This will then be different for e.g. a WebGL build. \
+The hand-encoded local position remains a constant point of reference but a custom vertex stream must be added to offset 3D Rotation.
