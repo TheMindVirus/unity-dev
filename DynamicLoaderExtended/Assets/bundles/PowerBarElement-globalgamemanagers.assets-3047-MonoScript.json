@@ -1,0 +1,29 @@
+{
+    "0 MonoScript Base": 
+    {
+        "1 string m_Name": "PowerBarElement",
+        "0 int m_ExecutionOrder": 0,
+        "0 Hash128 m_PropertiesHash": 
+        {
+            "0 UInt8 bytes[0]": 63,
+            "0 UInt8 bytes[1]": 101,
+            "0 UInt8 bytes[2]": 228,
+            "0 UInt8 bytes[3]": 159,
+            "0 UInt8 bytes[4]": 81,
+            "0 UInt8 bytes[5]": 224,
+            "0 UInt8 bytes[6]": 105,
+            "0 UInt8 bytes[7]": 204,
+            "0 UInt8 bytes[8]": 42,
+            "0 UInt8 bytes[9]": 181,
+            "0 UInt8 bytes[10]": 30,
+            "0 UInt8 bytes[11]": 55,
+            "0 UInt8 bytes[12]": 76,
+            "0 UInt8 bytes[13]": 87,
+            "0 UInt8 bytes[14]": 87,
+            "0 UInt8 bytes[15]": 189
+        },
+        "1 string m_ClassName": "PowerBarElement",
+        "1 string m_Namespace": "MoreMountains.NiceVibrations",
+        "1 string m_AssemblyName": "MoreMountains.NiceVibrations.Demos.dll"
+    }
+}
