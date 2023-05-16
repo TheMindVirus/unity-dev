@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Pokécenter</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="./Build/Output.loader.js"></script>
+    <script>
+window.onload = function()
+{
+    instance = null;
+    container = null;
+    canvas = null;
+    loadingBar = null;
+    progressBarFull = null;
+    captureDevice = 0;
+    captureRate = 59.94; //required on some devices only
+
+    buildUrl = "Build";
+    loaderUrl = buildUrl + "/Output.loader.js";
+    config =
+    {
+        dataUrl: buildUrl + "/Output.data.unityweb",
+        frameworkUrl: buildUrl + "/Output.framework.js.unityweb",
+        codeUrl: buildUrl + "/Output.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "TheMindVirus",
+        productName: "Pokécenter",
+        productVersion: "0.1",
+    };
+
+    audio = document.getElementById("audio");
+    container = document.querySelector("#unity-container");
+    canvas = document.querySelector("#unity-canvas");
+    loadingBar = document.querySelector("#unity-loading-bar");
+    progressBarFull = document.querySelector("#unity-progress-bar-full");
+    captureSelectors = document.querySelector("#unity-capture-selectors");
+    canvas.ondragstart = function(event) { event.preventDefault(); }
+    window.onresize();
+}
+
+window.onresize = function()
+{
+    if (canvas != null)
+    {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.width = parseFloat(canvas.style.width);
+        canvas.style.height = parseFloat(canvas.style.height);
+    }
+}
+
+play = function(element)
+{
+navigator.mediaDevices.getUserMedia({video: {width:1280,height:720,facingMode:"1",aspectRatio:1.0,frameRate:59.94,}, audio: false})
+.then(function(capture){console.log(capture);}); //why this is required now idk...
+
+navigator.mediaDevices.getUserMedia({video: false, audio: {volume: 0.5,channelCount:2,echoCancellation:false,}})
+.then(function(capture){console.log(capture);audio.srcObject=capture;audio.onloadedmetadata=function(){audio.play();}}); //and for audio...
+
+    element.remove();
+    loadingBar.style.display = "block";
+    createUnityInstance(canvas, config, function(progress)
+    {
+        progressBarFull.style.width = 100 * progress + "%";
+    }).then(function(unityInstance)
+    {
+        instance = unityInstance;
+        loadingBar.style.display = "none";
+    }).catch(function(message) { alert(message); });
+}
+
+selectDevice = function() { instance.SendMessage("SurfPatch", "SelectDevice", captureDevice); }
+captureDecrement = function() { captureDevice -= 1; selectDevice(); captureSelectors.innerText = captureDevice; }
+captureIncrement = function() { captureDevice += 1; selectDevice(); captureSelectors.innerText = captureDevice; }
+captureSelectors = function() { selectDevice(captureDevice); }
+    </script>
+    <style>
+      * { margin: auto; text-align: center; overflow: hidden; font-family: Orbitron, Helvetica, sans-serif; }
+      body { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: black; }
+      .webgl-content { position: absolute; top: 0 left: 0; width: 100%; height: 100%; text-shadow: 1px 1px 10px white; }
+      .unityContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+      .footer { position: absolute; top: 0; width: 100%; height: 30px; background-color: cyan; box-shadow: 1px 1px 10px black; opacity: 0.5; }
+      .webgl-logo { position: relative; top: 0; left: 0; background-color: white; z-index: 9999; }
+      .fullscreen { position: relative; top: 0; right: 0; }
+      .title { position: relative; bottom: 0; font-weight: bold; }
+      #unity-play-button { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; color: #FF06B5; border: none; text-align: center; font-size: 100pt; user-select: none; z-index: 9999; }
+      #unity-source-button { position: fixed; top: 0; right: 0; width: content; height: content; color: white; font-family: sans-serif; text-shadow: 0 0 5px black; user-select: none; z-index: 9998; }
+      #unity-source-button > h2 { text-align: right; }
+      #unity-source-button > h2 > a:link { color: white; }
+      #unity-capture-decrement { position: fixed; top: 10px; left: 10px; z-index: 9999; }
+      #unity-capture-increment { position: fixed; top: 10px; left: 40px; z-index: 9999; }
+      #unity-capture-selectors { position: fixed; top: 10px; left: 70px; z-index: 9999; }
+    </style>
+  </head>
+  <body>
+    <audio id="audio"></audio>
+    <button id="unity-play-button" onclick="play(this);">Play</button>
+    <div id="unity-source-button"><h2><a href="./Source.zip">Download Source</a></h2></div>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="100%" height="100%" onclick="requestPointerLock();"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+    </div>
+    <button id="unity-capture-decrement" onclick="captureDecrement();">-</button>
+    <button id="unity-capture-increment" onclick="captureIncrement();">+</button>
+    <button id="unity-capture-selectors" onclick="captureSelectors();">0</button>
+  </body>
+</html>
