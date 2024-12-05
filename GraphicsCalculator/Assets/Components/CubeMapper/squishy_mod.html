@@ -1,0 +1,381 @@
+<title>squishy_mod</title>
+<script>
+
+window.onload = function()
+{
+    canvas = document.createElement("canvas");
+    document.body.style = "background: black;";
+    document.body.appendChild(canvas);
+    canvas.setAttribute("id", "canvas");
+    canvas.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%;";
+    ctx = canvas.getContext("2d");
+    pi = Math.PI;
+    t = 2 * pi;
+    qt = pi / 2;
+    et = qt / 2;
+    window.onresize();
+    window.onmousemove({x: 0, y: 0});
+    setInterval(refresh, 1);
+}
+
+window.onresize = function()
+{
+    var style = window.getComputedStyle(canvas);
+    w = canvas.width = parseFloat(style.width);
+    h = canvas.height = parseFloat(style.height);
+    hw = w/2; hh = h/2; qw = hw/2; qh = hh/2;
+    tw = qw + hw; th = qh + hh;
+    ew = qw/2; eh = qh/2;
+    a = ((w > h) ? (h / w) : (w / h));
+    e = ((w > h) ? w : h) * a;
+    he = e/2; qe = he/2;
+    te = qe + he; 
+    ee = qe/2;
+    ce = ee + qe;
+    se = ee/2;
+    ne = se/2;
+    xe = se + ne;
+    de = ne/2;
+    _e = de/2;
+    df = 0.2;
+}
+
+window.onmousemove = function(event)
+{
+    mx = event.x;
+    my = event.y;
+}
+
+var ctx_swab = function
+(
+    x1, y1, x2, y2, r, fill = 1, stroke = 0,
+    startAngle = 0, endAngle = t, invert = 0,
+    steps = 100
+)
+{
+    ctx.beginPath();
+    for (var i = 0; i <= steps; ++i)
+    {
+        var inc = i / steps;
+        var mid = (inc * 2) - 1;
+        var ord = 1 - Math.abs(mid);
+        var mod = ord * Math.pow(0.9, ord * 2);
+        var xdiff = x1 + ((x2 - x1) * inc);
+        var ydiff = y1 + ((y2 - y1) * inc);
+        var rdiff = r - (r * mod);
+        ctx.moveTo(xdiff, ydiff);
+        ctx.arc(xdiff, ydiff, rdiff, startAngle, endAngle, invert);
+    }
+    if (fill) { ctx.fill(); }
+    if (stroke) { ctx.stroke(); }
+}
+
+var ctx_dot = function(x, y, c = "white")
+{
+    var tmp_fill = ctx.fillStyle;
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(qe + (ee * (x)), ce + se - (se * (y)), _e, 0, t);
+    ctx.fill();
+    ctx.fillStyle = tmp_fill;
+}
+
+xp = null; yp = null;
+var ctx_redline = function(x, y)
+{
+    if (xp == null) { xp = x; }
+    if (yp == null) { yp = y; }
+    var tmp_width = ctx.lineWidth;
+    var tmp_stroke = ctx.strokeStyle;
+    var tmp_blur = ctx.shadowBlur;
+    var tmp_shadow = ctx.shadowColor;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = "rgba(255, 0, 64, 1.0)";
+    ctx.shadowColor = "rgba(255, 0, 64, 1.0)";
+    ctx.beginPath();
+    ctx.moveTo(qe + (ee * (xp)), ce + se - (se * (yp)));
+    ctx.lineTo(qe + (ee * (x)), ce + se - (se * (y)));
+    ctx.stroke();
+    ctx.shadowColor = tmp_shadow;
+    ctx.shadowBlur = tmp_blur;
+    ctx.strokeStyle = tmp_stroke;
+    ctx.lineWidth = tmp_width;
+    xp = x; yp = y;
+}
+
+var PowerMul = function(a, b)
+{
+    return ((a < 0) || (b < 0)) ? -(Math.abs(a) * Math.abs(b)) : (a * b);
+}
+
+var PowerDiv = function(a, b)
+{
+    return (b != 0) ? (((a < 0) || (b < 0)) ? -(Math.abs(a) / Math.abs(b)) : (a / b)) : 0;
+}
+
+var PowerRoot = function(a, b)
+{
+    return (a < 0) ? -(Math.pow(Math.abs(a), 1 / b)) : Math.pow(a, 1 / b);
+}
+
+var FnLibLib = function(x, m = 0.7, c = 0.2, d = 0.1)
+{
+    x += d;
+    m = PowerMul(m, x);
+    m = PowerMul(m, x);
+    var y = m + c;
+    y = Math.min(1, y);
+    return y;
+}
+
+var FnLibLib2 = function(x, m = 0.4, c = 0.4)
+{
+    x = Math.cos(x * t * 0.5);
+    //x = Math.pow(x, 0.5);
+    //x = PowerDiv(x, 0.5);
+    x = PowerRoot(x, 2);
+    y = (m * x) + c;
+    //y = 1 - (y * 0.5);
+    return y;
+}
+
+var ctx_gum = function
+(
+    x1, y1, x2, y2, r, fill = 1, stroke = 0,
+    startAngle = 0, endAngle = t, invert = 0,
+    steps = 100
+)
+{
+    ctx.beginPath();
+    for (var i = 0; i <= steps; ++i)
+    {
+        var inc = i / steps;
+        var mid = (inc * 2) - 1;
+        var mod = FnLibLib(Math.abs(mid));
+        var xdiff = x1 + ((x2 - x1) * inc);
+        var ydiff = y1 + ((y2 - y1) * inc);
+        var rdiff = r * mod;
+        ctx.moveTo(xdiff, ydiff);
+        ctx.arc(xdiff, ydiff, rdiff, startAngle, endAngle, invert);
+    }
+    if (fill) { ctx.fill(); }
+    if (stroke) { ctx.stroke(); }
+}
+
+var ctx_stride = function(x, mul = 1, acc = 0, n = 11)
+{
+    for (var i = -n; i <= n; ++i) { ctx_redline(i/n, x(i/n) * mul + acc); }
+    xp = null; yp = null;
+}
+
+var FnLibLib3 = function(x, m = 0.4, c = 0.4)
+{
+    y = 0;
+    if ((x < -0.5) || (x > 0.5))
+    {
+        x = Math.cos(x * t * 0.5 + (t / 2));
+        x = -PowerRoot(x, 2);
+        y = ((1 - m) * x) + c + 0.2;
+    }
+    else
+    {
+        x = Math.cos(x * t * 0.5);
+        x = PowerRoot(x, 2);
+        y = (m * x) + c;
+    }
+    return y;
+}
+
+var ctx_phase = function(x1, y1, x2, y2)
+{
+    var xd = x2 - x1;
+    var yd = y2 - y1;
+    var theta = Math.atan(yd / xd);
+    if ((xd <  0) && (yd >= 0)) { theta += pi; }
+    if ((xd <  0) && (yd <  0)) { theta += pi; }
+    if ((xd >= 0) && (yd <  0)) { theta += t;  }
+    return (theta - qt) / t;
+}
+
+var ctx_displace = function(origin, amigin, angle, axis)
+{
+    if (axis == 0) { return origin + (amigin * Math.sin(angle)); }
+    if (axis == 1) { return origin + (amigin * Math.cos(angle)); }
+    if (axis == 2) { return origin + (amigin * Math.tan(angle)); }
+    else { return 0; }
+}
+
+var ctx_gummy_mod = function(x1, y1, x2, y2, r, f = 1.0)
+{
+    var phase = ctx_phase(x1, y1, x2, y2);
+    var theta = (phase * t) + qt;
+    var rf = r * f;
+    var rd = r * (1.0 - ((1.0 - f) * 0.5));
+
+    var xd = (x2 - x1);
+    var yd = (y2 - y1);
+    var xq = x1 + (xd * 0.2);
+    var yq = y1 + (yd * 0.2);
+    var xh = x1 + (xd * 0.5);
+    var yh = y1 + (yd * 0.5);
+    var xt = x1 + (xd * 0.8);
+    var yt = y1 + (yd * 0.8);
+
+    var xd1pr = ctx_displace(x1, r, -theta, 0);
+    var yd1pr = ctx_displace(y1, r, -theta, 1);
+    var xd1nr = ctx_displace(x1, -r, -theta, 0);
+    var yd1nr = ctx_displace(y1, -r, -theta, 1);
+    var xdqpr = ctx_displace(xq, r, -theta, 0);
+    var ydqpr = ctx_displace(yq, r, -theta, 1);
+    var xdqnr = ctx_displace(xq, -r, -theta, 0);
+    var ydqnr = ctx_displace(yq, -r, -theta, 1);
+    var xdqpd = ctx_displace(xq, rd, -theta, 0);
+    var ydqpd = ctx_displace(yq, rd, -theta, 1);
+    var xdqnd = ctx_displace(xq, -rd, -theta, 0);
+    var ydqnd = ctx_displace(yq, -rd, -theta, 1);
+    var xdqpf = ctx_displace(xq, rf, -theta, 0);
+    var ydqpf = ctx_displace(yq, rf, -theta, 1);
+    var xdqnf = ctx_displace(xq, -rf, -theta, 0);
+    var ydqnf = ctx_displace(yq, -rf, -theta, 1);
+    var xdhpf = ctx_displace(xh, rf, -theta, 0);
+    var ydhpf = ctx_displace(yh, rf, -theta, 1);
+    var xdhnf = ctx_displace(xh, -rf, -theta, 0);
+    var ydhnf = ctx_displace(yh, -rf, -theta, 1);
+    var xdtpf = ctx_displace(xt, rf, -theta, 0);
+    var ydtpf = ctx_displace(yt, rf, -theta, 1);
+    var xdtnf = ctx_displace(xt, -rf, -theta, 0);
+    var ydtnf = ctx_displace(yt, -rf, -theta, 1);
+    var xdtpd = ctx_displace(xt, rd, -theta, 0);
+    var ydtpd = ctx_displace(yt, rd, -theta, 1);
+    var xdtnd = ctx_displace(xt, -rd, -theta, 0);
+    var ydtnd = ctx_displace(yt, -rd, -theta, 1);
+    var xdtpr = ctx_displace(xt, r, -theta, 0);
+    var ydtpr = ctx_displace(yt, r, -theta, 1);
+    var xdtnr = ctx_displace(xt, -r, -theta, 0);
+    var ydtnr = ctx_displace(yt, -r, -theta, 1);
+    var xd2pr = ctx_displace(x2, r, -theta, 0);
+    var yd2pr = ctx_displace(y2, r, -theta, 1);
+    var xd2nr = ctx_displace(x2, -r, -theta, 0);
+    var yd2nr = ctx_displace(y2, -r, -theta, 1);
+
+    //ctx.beginPath();
+    //ctx.arc(x1, y1, r, qt + theta, -qt + theta);
+    //ctx.lineTo(xd1nr, yd1nr); ctx.lineTo(xdqnr, ydqnr); ctx.lineTo(xdqnd, ydqnd);
+    //ctx.lineTo(xdqnf, ydqnf); ctx.lineTo(xdhnf, ydhnf); ctx.lineTo(xdtnf, ydtnf);
+    //ctx.lineTo(xdtnd, ydtnd); ctx.lineTo(xdtnr, ydtnr); ctx.lineTo(xd2nr, yd2nr);
+    //ctx.arc(x2, y2, r, -qt + theta, qt + theta);
+    //ctx.lineTo(xd2pr, yd2pr); ctx.lineTo(xdtpr, ydtpr); ctx.lineTo(xdtpd, ydtpd);
+    //ctx.lineTo(xdtpf, ydtpf); ctx.lineTo(xdhpf, ydhpf); ctx.lineTo(xdqpf, ydqpf);
+    //ctx.lineTo(xdqpd, ydqpd); ctx.lineTo(xdqpr, ydqpr); ctx.lineTo(xd1pr, yd1pr);
+    //ctx.closePath();
+
+    ctx.beginPath();
+    ctx.moveTo(xd1pr, yd1pr);
+    ctx.arc(x1, y1, r, qt + theta, -qt + theta);
+    ctx.lineTo(xd1nr, yd1nr);
+    ctx.quadraticCurveTo(xdqnr, ydqnr, xdqnd, ydqnd);
+    ctx.lineTo(xdqnd, ydqnd);
+    ctx.quadraticCurveTo(xdqnf, ydqnf, xdhnf, ydhnf);
+    ctx.lineTo(xdhnf, ydhnf);
+    ctx.quadraticCurveTo(xdtnf, ydtnf, xdtnd, ydtnd);
+    ctx.lineTo(xdtnd, ydtnd);
+    ctx.quadraticCurveTo(xdtnr, ydtnr, xd2nr, yd2nr);
+    ctx.lineTo(xd2nr, yd2nr);
+    ctx.arc(x2, y2, r, -qt + theta, qt + theta);
+    ctx.lineTo(xd2pr, yd2pr);
+    ctx.quadraticCurveTo(xdtpr, ydtpr, xdtpd, ydtpd);
+    ctx.lineTo(xdtpd, ydtpd);
+    ctx.quadraticCurveTo(xdtpf, ydtpf, xdhpf, ydhpf);
+    ctx.lineTo(xdhpf, ydhpf);
+    ctx.quadraticCurveTo(xdqpf, ydqpf, xdqpd, ydqpd);
+    ctx.lineTo(xdqpd, ydqpd);
+    ctx.quadraticCurveTo(xdqpr, ydqpr, xd1pr, yd1pr);
+    ctx.lineTo(xd1pr, yd1pr);
+    ctx.closePath();
+}
+
+var ctx_gummy = function(x1, y1, x2, y2, r, ef = 0.8)
+{
+    var phase = ctx_phase(x1, y1, x2, y2);
+    var theta = (phase * t) + qt;
+    ef *= (et); // * overlap backcurve;
+
+    ctx.beginPath();
+    ctx.arc(x1, y1, r, qt + theta - ef, -qt + theta + ef);
+    {
+        var xdo1 = ctx_displace(x1, -r, -theta - ef, 0);
+        var ydo1 = ctx_displace(y1, -r, -theta - ef, 1);
+        var xdc1 = ctx_displace(x1, -r, -theta - qt, 0);
+        var ydc1 = ctx_displace(y1, -r, -theta - qt, 1);
+        var xdc2 = ctx_displace(x2,  r, -theta - qt, 0);
+        var ydc2 = ctx_displace(y2,  r, -theta - qt, 1);
+        var xdo2 = ctx_displace(x2, -r, -theta + ef, 0);
+        var ydo2 = ctx_displace(y2, -r, -theta + ef, 1);
+        ctx.lineTo(xdo1, ydo1);
+        //ctx.lineTo(xdc1, ydc1);
+        ctx.bezierCurveTo(xdc1, ydc1, xdc2, ydc2, xdo2, ydo2);
+        //ctx.lineTo(xdc2, ydc2);
+        ctx.lineTo(xdo2, ydo2);
+    }
+    ctx.arc(x2, y2, r, -qt + theta - ef, qt + theta + ef);
+    {
+        var xdo2 = ctx_displace(x2,  r, -theta - ef, 0);
+        var ydo2 = ctx_displace(y2,  r, -theta - ef, 1);
+        var xdc2 = ctx_displace(x2,  r, -theta - qt, 0);
+        var ydc2 = ctx_displace(y2,  r, -theta - qt, 1);
+        var xdc1 = ctx_displace(x1, -r, -theta - qt, 0);
+        var ydc1 = ctx_displace(y1, -r, -theta - qt, 1);
+        var xdo1 = ctx_displace(x1,  r, -theta + ef, 0);
+        var ydo1 = ctx_displace(y1,  r, -theta + ef, 1);
+        ctx.lineTo(xdo2, ydo2);
+        //ctx.lineTo(xdc2, ydc2);
+        ctx.bezierCurveTo(xdc2, ydc2, xdc1, ydc1, xdo1, ydo1);
+        //ctx.lineTo(xdc1, ydc1);
+        ctx.lineTo(xdo1, ydo1);
+    }
+    ctx.closePath();
+}
+
+var refresh = function()
+{
+    canvas.width = canvas.width;
+    ctx.fillStyle = "rgba(0, 0, 0, 1.0)";
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 10;
+    fill = ctx.createLinearGradient(0, 0, 0, e);
+    fill.addColorStop(0.0, "rgba(000.000, 000.000, 255.000, 1.000)");
+    fill.addColorStop(0.5, "rgba(127.500, 064.250, 032.125, 1.000)");
+    fill.addColorStop(1.0, "rgba(000.000, 000.000, 255.000, 1.000)");
+    ctx.fillStyle = fill;
+    ctx.shadowColor = fill;
+    ctx.strokeStyle = fill;
+
+    ctx_swab(ee, he+ee, ce, he+ee, se);
+    ctx_swab(ee, he+ce, ce, he+ce, se);
+    ctx_swab(ee, he+ee, ee, he+ce, se);
+    ctx_swab(ce, he+ee, ce, he+ce, se);
+
+    ctx_gum(ee, ee, ce, ee, se);
+    ctx_gum(ee, ce, ce, ce, se);
+    ctx_gum(ee, ee, ee, ce, se);
+    ctx_gum(ce, ee, ce, ce, se);
+
+    ctx_dot(-0.5, 0.000);
+    ctx_dot( 0.5, 0.000);
+
+    ctx_stride(FnLibLib2, -1, 2);
+    ctx_stride(FnLibLib3);
+
+    //ctx_gummy_mod(he+ee, ee, he+ce, ce, se, df); ctx.fill();
+    //ctx_gummy_mod(he, he, mx, my, se, df); ctx.fill();
+    ctx_gummy(he, he, mx, my, se); ctx.fill();
+
+    ctx_gummy(he+ee, ee, he+ce, ee, se); ctx.fill();
+    ctx_gummy(he+ee, ce, he+ce, ce, se); ctx.fill();
+    ctx_gummy(he+ee, ee, he+ee, ce, se); ctx.fill();
+    ctx_gummy(he+ce, ee, he+ce, ce, se); ctx.fill();
+}
+</script>

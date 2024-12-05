@@ -1,0 +1,556 @@
+<script>
+window.onload = function()
+{
+    canvas = document.createElement("canvas");
+    canvas.style.position = "fixed";
+    canvas.style.top = 0;
+    canvas.style.left = 0;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    window.onresize();
+    i = 0; t = 0;
+    tau = 2 * Math.PI;
+    rt2 = Math.sqrt(2);
+    black = "#000000FF";
+    navy = "#000011FF";
+    cyan = "#00FFFFFF";
+    red = "#FF0033FF";
+    setInterval(render, 1);
+}
+window.onresize = function()
+{
+    style = window.getComputedStyle(canvas);
+    w = canvas.width = parseFloat(style.width);
+    h = canvas.height = parseFloat(style.height);
+}
+var render = function()
+{
+    i += 0.005; i %= tau;
+
+    ox = 200; oy = 200;
+    r = 100; d = r * 2;
+    ds = 5;
+
+    ctx.fillStyle = black;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.lineWidth = 5;
+    ctx.fillStyle = navy;
+    ctx.strokeStyle = cyan;
+    ctx.fillRect(ox - r, oy - r, d, d);
+    ctx.strokeRect(ox - r, oy - r, d, d);
+
+    ctx.beginPath();
+    ctx.arc(ox, oy, r, 0, tau);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.fillStyle = navy;
+    ctx.strokeStyle = cyan;
+    ctx.fill();
+    ctx.stroke();
+
+    //cx = ox + (r * Math.sin(i));
+    //cy = oy + (r * Math.cos(i));
+
+    cx = 0;
+    cy = 0;
+    hyp = 0;
+    phase = (i / tau);
+    shift = tau / 4;
+    if (phase < 1 / 8)
+    {
+        cx = ox + r;
+        cy = oy + (r * Math.tan(i - (0 * shift)));
+        hyp = 1 - (1 / Math.cos(i - (0 * shift)));
+    }
+    else if (phase < 2 / 8)
+    {
+        hyp = 1 - (1 / Math.cos((1 * shift) - i));
+        cx = ox + (r * Math.tan((1 * shift) - i));
+        cy = oy + r;
+    }
+    else if (phase < 3 / 8)
+    {
+        hyp = -1 + (1 / Math.cos(i - (1 * shift)));
+        cx = ox - (r * Math.tan(i - (1 * shift)));
+        cy = oy + r;
+    }
+    else if (phase < 4 / 8)
+    {
+        cx = ox - r;
+        cy = oy + (r * Math.tan((2 * shift) - i));
+        hyp = -1 + (1 / Math.cos((2 * shift) - i));
+    }
+    else if (phase < 5 / 8)
+    {
+        cx = ox - r;
+        cy = oy - (r * Math.tan(i - (2 * shift)));
+        hyp = 1 - (1 / Math.cos(i - (2 * shift)));
+    }
+    else if (phase < 6 / 8)
+    {
+        hyp = 1 - (1 / Math.cos((3 * shift) - i));
+        cx = ox - (r * Math.tan((3 * shift) - i));
+        cy = oy - r;
+    }
+    else if (phase < 7 / 8)
+    {
+        hyp = -1 + (1 / Math.cos(i - (3 * shift)));
+        cx = ox + (r * Math.tan(i - (3 * shift)));
+        cy = oy - r;
+    }
+    else if (phase < 8 / 8)
+    {
+        cx = ox + r;
+        cy = oy - (r * Math.tan((4 * shift) - i));
+        hyp = -1 + (1 / Math.cos((4 * shift) - i));
+    }
+/*
+    cx = 0;
+    cy = 0;
+    phase = (i / tau);
+    shift = 0.5; //tau / 8;
+    cross = phase;
+    f = Math.E; //???
+    if (phase < 1 / 8)
+    {
+        cross = phase;
+        cx = ox + r;
+        cy = oy + (r * (f / Math.cos(cross * tau))) - (r * f);
+    }
+    else if (phase < 2 / 8)
+    {
+        cross = (2 / 8) - phase;
+        cx = ox + (r * (f / Math.cos(cross * tau))) - (r * f);
+        cy = oy + r;
+    }
+    else if (phase < 3 / 8)
+    {
+        cross = phase - (2 / 8);
+        cx = ox - (r * (f / Math.cos(cross * tau))) + (r * f);
+        cy = oy + r;
+    }
+    else if (phase < 4 / 8)
+    {
+        cross = (4 / 8) - phase;
+        cx = ox - r;
+        cy = oy + (r * (f / Math.cos(cross * tau))) - (r * f);
+    }
+    else if (phase < 5 / 8)
+    {
+        cross = phase - (4 / 8);
+        cx = ox - r;
+        cy = oy - (r * (f / Math.cos(cross * tau))) + (r * f);
+    }
+    else if (phase < 6 / 8)
+    {
+        cross = (6 / 8) - phase;
+        cx = ox - (r * (f / Math.cos(cross * tau))) + (r * f);
+        cy = oy - r;
+    }
+    else if (phase < 7 / 8)
+    {
+        cross = phase - (6 / 8);
+        cx = ox + (r * (f / Math.cos(cross * tau))) - (r * f);
+        cy = oy - r;
+    }
+    else if (phase < 8 / 8)
+    {
+        cross = (8 / 8) - phase;
+        cx = ox + r;
+        cy = oy - (r * (f / Math.cos(cross * tau))) + (r * f);
+    }
+*/
+/*
+    cx = 0;
+    cy = 0;
+    phase = i / 8;
+    if (phase < 1 / 8)
+    {
+        cx = ox + r;
+        cy = oy + (r * i);
+    }
+    else if (phase < 3 / 8)
+    {
+        cx = ox - (r * (i - 2));
+        cy = oy + r;
+    }
+    else if (phase < 5 / 8)
+    {
+        cx = ox - r;
+        cy = oy - (r * (i - 4));
+    }
+    else if (phase < 7 / 8)
+    {
+        cx = ox + (r * (i - 6));
+        cy = oy - r;
+    }
+    else if (phase < 8 / 8)
+    {
+        cx = ox + r;
+        cy = oy - (r * (i - 8));
+    }
+*/
+    t = 20;
+    ctx.beginPath();
+    ctx.arc(cx, cy, t, 0, tau);
+    ctx.closePath();
+
+    ctx.fillStyle = black;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(ox, oy, ds, 0, tau);
+    ctx.closePath();
+
+    ctx.fillStyle = cyan;
+    ctx.fill();
+
+    t = 10;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    t = 0.2;
+    ctx.beginPath();
+    ctx.arc(ox, oy, r, i - t, i + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(ox, oy, ds, 0, tau);
+    ctx.closePath();
+
+    ctx.fillStyle = cyan;
+    ctx.fill();
+
+    t = 10;
+    cx = ox + (r * Math.cos(i));
+    cy = oy + (r * Math.sin(i));
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    rt = 1 + Math.abs(hyp);
+    //rt = rt2;
+
+    cx = ((cx - ox) * rt) + ox;
+    cy = ((cy - oy) * rt) + oy;
+
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(cx, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    oz = 2;
+    fx = r * Math.sin(i);
+
+    cx = ox * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx, oy - r);
+    ctx.lineTo(cx, oy + r);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - t);
+    ctx.lineTo(cx, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 3;
+    fx = r * (1 / Math.cos(i));
+
+    cx = ox * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx, oy - r);
+    ctx.lineTo(cx, oy + r);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - t);
+    ctx.lineTo(cx, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 4;
+    fx = r * hyp;
+
+    cx = ox * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx, oy - r);
+    ctx.lineTo(cx, oy + r);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - t);
+    ctx.lineTo(cx, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 5;
+    quad = 4;
+    phase = (i / tau);
+    shift = tau / quad;
+    rotor_a = parseInt((phase * quad * 2));
+    rotor_b = parseInt((phase * quad * 2));
+    rotor_a = parseInt((rotor_a * (rotor_a % 2) / 2) + 0.5);
+    rotor_b = parseInt((rotor_b * ((rotor_b + 1) % 2) / 2) + 0.5);
+    hyp = (1 - Math.abs(1 / Math.cos((rotor_a * shift) - i - (rotor_b * shift))));
+    neg = 1 - (parseInt((phase * 4) % 2) * 2);
+    hyp = hyp * neg;
+    //console.log(rotor_a, rotor_b, hyp, neg);
+    fx = r * hyp
+    //fx = r * ((1 - Math.cos(i)) * (rt2 - 1));
+
+    cx = ox * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx, oy - r);
+    ctx.lineTo(cx, oy + r);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - t);
+    ctx.lineTo(cx, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox * oz;
+    cy = oy + fx;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 2;
+    fx = r * Math.cos(i);
+
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(ox - r, cy);
+    ctx.lineTo(ox + r, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy);
+    ctx.lineTo(cx + t, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 3;
+    fx = r * Math.tan(i);
+
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(ox - r, cy);
+    ctx.lineTo(ox + r, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy);
+    ctx.lineTo(cx + t, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+
+    oz = 4;
+    //fx = r * (Math.sin(i) / Math.cos(i));
+    //fx = r * (Math.sin(2 * Math.PI) / Math.cos(0)); //Zero Cross Test Passed
+    fx = r * (Math.sin(i) * Math.cos(i));
+
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(ox - r, cy);
+    ctx.lineTo(ox + r, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = cyan;
+    ctx.stroke();
+
+    t = 20;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy);
+    ctx.lineTo(cx + t, cy);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = black;
+    ctx.stroke();
+
+    t = 10;
+    cx = ox + fx;
+    cy = oy * oz;
+    ctx.beginPath();
+    ctx.moveTo(cx - t, cy - t);
+    ctx.lineTo(cx + t, cy + t);
+    ctx.moveTo(cx + t, cy - t);
+    ctx.lineTo(cx - t, cy + t);
+    ctx.closePath();
+
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = red;
+    ctx.stroke();
+}
+</script>
