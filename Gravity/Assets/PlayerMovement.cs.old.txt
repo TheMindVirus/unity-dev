@@ -1,0 +1,37 @@
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    GameObject player;
+    ConstantForce physics;
+    GameObject planet;
+    Vector3 force;
+    float gravity; //Vector3 gravity;
+
+    void Start()
+    {
+        player = GameObject.Find("Player");
+        physics = player.GetComponent<ConstantForce>();
+        planet = GameObject.Find("Planet");
+        force = new Vector3(0.0f, 0.0f, 0.0f);
+        gravity = 1.0f;
+    }
+
+    void Update()
+    {
+        //player.LookAt(planet);
+        //player.transform.LookAt(planet.transform);
+        player.transform.LookAt(planet.transform, -Vector3.left);
+        if (Input.GetKeyDown("s")) { force.z = -1.0f; }
+        if (Input.GetKeyDown("w")) { force.z = 1.0f; }
+        if (Input.GetKeyDown("s") && Input.GetKeyDown("w")) { force.z = 0.0f; }
+        if (Input.GetKeyUp("s") && Input.GetKeyUp("w")) { force.z = 0.0f; }
+        if (Input.GetKeyDown("a")) { force.x = 1.0f; }
+        if (Input.GetKeyDown("d")) { force.x = -1.0f; }
+        if (Input.GetKeyDown("a") && Input.GetKeyDown("d")) { force.x = 0.0f; }
+        if (Input.GetKeyUp("a") && Input.GetKeyUp("d")) { force.x = 0.0f; }
+        if (Input.GetKeyDown("space")) { force.y = 1.0f * gravity; }
+        if (Input.GetKeyUp("space")) { force.y = -1.0f * gravity; }
+        physics.relativeForce = force;
+    }
+}
