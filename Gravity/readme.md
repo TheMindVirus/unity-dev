@@ -1,0 +1,8 @@
+# Galaxy (paused)
+![galaxy_pause](/Gravity/galaxy_pause.png)
+# Galaxy (played)
+![galaxy_play](/Gravity/galaxy_play.png)
+# Craft (paused)
+![minecraft_pause](/Gravity/minecraft_pause.png)
+# Craft (played)
+![minecraft_play](/Gravity/minecraft_play.png)
