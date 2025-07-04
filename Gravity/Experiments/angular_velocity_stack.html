@@ -1,0 +1,480 @@
+<!--https://stackoverflow.com/questions/36784456/calculating-angular-velocity-after-a-collision-->
+<title>Angular Velocity 2D Physics Engine</title>
+<style>
+  * { box-sizing: border-box; margin: auto; font-family: sans-serif; }
+  html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 10px #f06 solid; }
+  button { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; font-size: 100pt; background: black; color: #f06; border: none; user-select: none; }
+</style>
+<script>
+var PI90 = Math.PI / 2;
+var PI = Math.PI;
+var PI2 = Math.PI * 2;
+
+var INSET = 0; // playfield inset
+
+var ARROW_SIZE = 6
+var SCALE_VEC = 10;
+var SCALE_FORCE = 0.15;
+var LINE_W = 2;
+var LIFE = 12;
+var FONT_SIZE = 20;
+var FONT = "Arial Black";
+var WALL_NORMS = [PI90,PI, -PI90,0]; // direction of the wall normals
+
+var ANI_GRAVITY = 9.81;
+var ANI_FRAME_FPS = 60;
+var ANI_THRESHOLD = 0.001;
+
+var button = null;
+var canvas = null;
+var ctx = null;
+var w = 0;
+var h = 0;
+var tempVecs = [];
+var lx = 0;
+var ly = 0;
+var box = null;
+
+window.onload = function()
+{
+    canvas = document.getElementsByTagName("canvas")[0];
+    ctx = canvas.getContext("2d");
+    button = document.getElementsByTagName("button")[0];
+    button.innerText = "Play";
+    button.onclick = play;
+}
+
+window.onresize = function()
+{
+    var style = window.getComputedStyle(canvas);
+    w = canvas.width = parseFloat(style.width);
+    h = canvas.height = parseFloat(style.height);
+    // render / refresh function
+    if (box)
+    {
+        box.w = canvas.width * 0.10;
+        box.h = box.w * 2;
+        box.mass = box.w * box.h;
+    }
+}
+
+var play = function()
+{
+    button.remove();
+    window.onresize();
+    box = createBox(200, 200, 100, 100);
+    box.applyForce = applyForce; // Add this function to the box
+    mouse.start(canvas);
+    ctx.globalAlpha = 1;
+    refresh();
+}
+
+var mouse = (function()
+{
+    function preventDefault(e) { e.preventDefault(); }
+    var i;
+    var mouse =
+    {
+        x: 0, y: 0, buttonRaw: 0,
+        bm: [1, 2, 4, 6, 5, 3], // masks for setting and clearing button raw bits
+        mouseEvents: "mousemove,mousedown,mouseup".split(",")
+    };
+    function mouseMove(e)
+    {
+        var t = e.type, m = mouse;
+        m.x = e.offsetX; m.y = e.offsetY;
+        if (m.x === undefined) { m.x = e.clientX; m.y = e.clientY; }
+        if (t === "mousedown") { m.buttonRaw |= m.bm[e.which - 1]; }
+        else if (t === "mouseup") { m.buttonRaw &= m.bm[e.which + 2]; }
+        e.preventDefault();
+    }
+    mouse.start = function(element = document)
+    {
+        if (mouse.element !== undefined) { mouse.removeMouse(); }
+        mouse.element = element;
+        mouse.mouseEvents.forEach(n => { element.addEventListener(n, mouseMove); });
+    }
+    mouse.remove = function()
+    {
+        if (mouse.element !== undefined)
+        {
+            mouse.mouseEvents.forEach(n => { mouse.element.removeEventListener(n, mouseMove); });
+            mouse.element = undefined;
+        }
+    }
+    return mouse;
+}
+)();
+
+function addTempVec(v, vec, col, life = LIFE, scale = SCALE_VEC)
+{
+    tempVecs.push({ v: v, vec: vec, col: col, scale: scale, life: life, sLife: life });
+}
+
+function drawTempVecs()
+{
+    for (var i = 0; i < tempVecs.length; ++i)
+    {
+        var t = tempVecs[i]; t.life -= 1;
+        if (t.life <= 0) { tempVecs.splice(i, 1); --i; continue; }
+        ctx.globalAlpha = (t.life / t.sLife) * 0.25;
+        drawVec(t.v, t.vec, t.col, t.scale);
+    }
+}
+
+function drawVec(v, vec, col, scale = SCALE_VEC)
+{
+    vec = asPolar(vec);
+    ctx.setTransform(1, 0, 0, 1, v.x, v.y);
+    var d = vec.dir;
+    var m = vec.mag;
+    ctx.rotate(d);
+    ctx.beginPath();
+    ctx.lineWidth = LINE_W;
+    ctx.strokeStyle = col;
+    ctx.moveTo(0,0);
+    ctx.lineTo(m * scale,0);
+    ctx.moveTo(m * scale - ARROW_SIZE, -ARROW_SIZE);
+    ctx.lineTo(m * scale,0);
+    ctx.lineTo(m * scale - ARROW_SIZE, ARROW_SIZE);
+    ctx.stroke();
+}
+
+function drawText(text, x, y, font, size, col)
+{
+    ctx.font = size + "px " + font;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.setTransform(1, 0, 0, 1, x, y);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = col;
+    ctx.fillText(text, 0, 0);
+}
+
+function createBox(x, y, w, h)
+{
+    var box =
+    {
+        x: x, // pos
+        y: y,
+        r: 0.1, // its rotation AKA orientation or direction in radians
+        h: h, // its height, and I will assume that its depth is always equal to its height
+        w: w, // its width
+        dx: 0, // delta x in pixels per frame 1/60th second
+        dy: 0, // delta y
+        dr: 0.0, // deltat rotation in radians per frame 1/60th second
+        getDesc: function()
+        {
+            var vel = Math.hypot(this.dx, this.dy);
+            var radius = Math.hypot(this.w, this.h) / 2;
+            var rVel = Math.abs(this.dr * radius);
+            var str = "V " + (vel * 60).toFixed(0) + "pps ";
+            str += Math.abs(this.dr * 60 * 60).toFixed(0) + "rpm ";
+            str += "Va " + (rVel * 60).toFixed(0) + "pps ";
+            return str;
+        },
+        mass: function()
+        {
+            return (this.w * this.h * this.h) / 1000;
+        }, // mass in K things
+        draw: function()
+        {
+            ctx.globalAlpha = 1;
+            ctx.setTransform(1, 0, 0, 1, this.x, this.y);
+            ctx.rotate(this.r);
+            ctx.fillStyle = "#333";
+            ctx.strokeStyle = "#f06";
+            ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h)
+            ctx.strokeRect(-this.w/2, -this.h/2, this.w, this.h)
+        },
+        refresh: function()
+        {
+            if (Math.abs(this.dx) < ANI_THRESHOLD) { this.dx = 0; }
+            if (Math.abs(this.dy) < ANI_THRESHOLD) { this.dy = 0; }
+            if (Math.abs(this.dr) < ANI_THRESHOLD) { this.dr = 0; }
+            this.x += this.dx;
+            this.y += this.dy;
+            this.dy += (ANI_GRAVITY / 1000) * ANI_FRAME_FPS; // 0.061; // a little gravity
+            this.r += this.dr;
+        },
+        getPoint: function(which)
+        {
+            var dx, dy, x, y, xx, yy, velocityA, velocityT, velocity;
+            dx = Math.cos(this.r);
+            dy = Math.sin(this.r);
+            switch (which)
+            {
+                case (0):
+                {
+                    x = -this.w/2;
+                    y = -this.h/2;
+                }
+                break;
+                case (1):
+                {
+                    x = this.w/2;
+                    y = -this.h/2;
+                }
+                break;
+                case (2):
+                {
+                    x = this.w/2;
+                    y = this.h/2;
+                }
+                break;
+                case (3):
+                {
+                    x = -this.w/2;
+                    y = this.h/2;
+                }
+                break;
+                case (4):
+                {
+                    x = this.x;
+                    y = this.y;
+                }
+                break;
+                default:
+                {
+                    x = 0;
+                    y = 0;
+                }
+                break;
+            }
+            var xx, yy;
+            xx = x * dx + y * -dy;
+            yy = x * dy + y * dx;
+            var details = asPolar(vector(xx, yy));
+            xx += this.x;
+            yy += this.y;
+            velocityA = polar(details.mag * this.dr, details.dir + PI90);
+            velocityT = vectorAdd(velocity = vector(this.dx, this.dy), velocityA);
+            if (Math.abs(velocity ) < ANI_THRESHOLD) { velocity  = 0; }
+            if (Math.abs(velocityA) < ANI_THRESHOLD) { velocityA = 0; }
+            if (Math.abs(velocityT) < ANI_THRESHOLD) { velocityT = 0; }
+            return (
+            {
+                velocity: velocity, // only directional
+                velocityT: velocityT, // total
+                velocityA: velocityA, // angular only
+                pos: vector(xx, yy),
+                radius: details.mag,
+            });
+        },
+    }
+    box.mass = box.mass(); // Mass remains the same so just set it with its function
+    return box;
+}
+
+function validatePolar(vec)
+{
+    if (isPolar(vec))
+    {
+        if (vec.mag < 0)
+        {
+            vec.mag = -vec.mag;
+            vec.dir += PI;
+        }
+    }
+    return vec;
+}
+// converts a vector from polar to cartesian returning a new one
+function polarToCart(pVec, retV = { x: 0, y: 0 })
+{
+    retV.x = Math.cos(pVec.dir) * pVec.mag;
+    retV.y = Math.sin(pVec.dir) * pVec.mag;
+    return retV;
+}
+// converts a vector from cartesian to polar returning a new one
+function cartToPolar(vec, retV  = { dir: 0, mag: 0 })
+{
+    retV.dir = Math.atan2(vec.y, vec.x);
+    retV.mag = Math.hypot(vec.x, vec.y);
+    return retV;
+}
+function polar(mag = 1, dir = 0) { return validatePolar({ dir: dir, mag: mag }); } // create a polar vector
+function vector(x = 1, y = 0) { return { x: x, y: y }; } // create a cartesian vector
+function isPolar(vec) { if ((vec.mag !== undefined) && (vec.dir !== undefined)) { return true; } return false; } // returns true if polar
+function isCart(vec) { if ((vec.x !== undefined) && (vec.y !== undefined)) { return true; } return false; } // returns true if cartesian
+// copy and convert an unknown vec to polar if not already
+function asPolar(vec)
+{
+    if (isCart(vec)) { return cartToPolar(vec); }
+    if (vec.mag < 0)
+    {
+        vec.mag = -vec.mag;
+        vec.dir += PI;
+    }
+    return { dir: vec.dir, mag: vec.mag };
+}
+// copy and convert an unknown vec to cart if not already
+function asCart(vec)
+{
+    if (isPolar(vec)) { return polarToCart(vec); }
+    return { x: vec.x, y: vec.y };
+}
+// normalise makes a vector a unit length and returns it as a cartesian
+function normalise(vec)
+{
+    var vp = asPolar(vec);
+    vap.mag = 1;
+    return asCart(vp);
+}
+
+function vectorAdd(vec1, vec2)
+{
+    var v1 = asCart(vec1);
+    var v2 = asCart(vec2);
+    return vector(v1.x + v2.x, v1.y + v2.y);
+}
+// This splits the vector (polar or cartesian) into the components along dir and the tangent to that dir
+function vectorComponentsForDir(vec, dir)
+{
+    var v = asPolar(vec); // as polar
+    var pheta = v.dir - dir;
+    var Fv = Math.cos(pheta) * v.mag;
+    var Fa = Math.sin(pheta) * v.mag;
+
+    var d1 = dir;
+    var d2 = dir + PI90;
+    if (Fv < 0)
+    {
+        d1 += PI;
+        Fv = -Fv;
+    }
+    if (Fa < 0)
+    {
+        d2 += PI;
+        Fa = -Fa;
+    }
+
+    return (
+    {
+        along: polar(Fv, d1),
+        tangent: polar(Fa, d2)
+    });
+}
+
+function doCollision(pointDetails, wallIndex)
+{
+    var vv = asPolar(pointDetails.velocity); // Cartesian V make sure the velocity is in cartesian form
+    var va = asPolar(pointDetails.velocityA); // Angular V make sure the velocity is in cartesian form
+    var vvc = vectorComponentsForDir(vv, WALL_NORMS[wallIndex]);
+    var vac = vectorComponentsForDir(va, WALL_NORMS[wallIndex]);
+    vvc.along.mag *= 1.18; // Elastic collision requires that the two equal forces from the wall
+    vac.along.mag *= 1.18; // against the box and the box against the wall be summed.
+                           // As the wall can not move the result is that the force is twice
+                           // the force the box applies to the wall (Yes and currently force is in
+                           // velocity form until the next line)
+    vvc.along.mag *= box.mass; // convert to force
+    //vac.along.mag /= pointDetails.radius
+    vac.along.mag *= box.mass;
+    vvc.along.dir += PI; // force is in the opposite direction so turn it 180
+    vac.along.dir += PI; // force is in the opposite direction so turn it 180
+    // split the force into components based on the wall normal
+    // one along the norm and the other along the wall
+    vvc.tangent.mag *= 0.18; // add friction along the wall
+    vac.tangent.mag *= 0.18;
+    vvc.tangent.mag *= box.mass;
+    vac.tangent.mag *= box.mass;
+    vvc.tangent.dir += PI; // force is in the opposite direction so turn it 180
+    vac.tangent.dir += PI; // force is in the opposite direction so turn it 180
+
+    if (Math.abs(vvc.along.mag  ) < ANI_THRESHOLD) { vvc.along.mag   = 0; }
+    if (Math.abs(vvc.tangent.mag) < ANI_THRESHOLD) { vvc.tangent.mag = 0; }
+    if (Math.abs(vac.along.mag  ) < ANI_THRESHOLD) { vac.along.mag   = 0; }
+    if (Math.abs(vac.tangent.mag) < ANI_THRESHOLD) { vac.tangent.mag = 0; }
+
+    // apply the force out from the wall
+    box.applyForce(vvc.along, pointDetails.pos);
+    // apply the force along the wall
+    box.applyForce(vvc.tangent, pointDetails.pos);
+    // apply the force out from the wall
+    box.applyForce(vac.along, pointDetails.pos);
+    // apply the force along the wall
+    box.applyForce(vac.tangent, pointDetails.pos);
+    //addTempVec(pointDetails.pos, vvc.tangent, "red", LIFE, 10)
+    //addTempVec(pointDetails.pos, vac.tangent, "red", LIFE, 10)
+
+    if (Math.abs(box.dx) < ANI_THRESHOLD) { box.dx = 0; }
+    if (Math.abs(box.dy) < ANI_THRESHOLD) { box.dy = 0; }
+    if (Math.abs(box.dr) < ANI_THRESHOLD) { box.dr = 0; }
+}
+
+function applyForce(force, loc)
+{   // force is a vector, loc is a coordinate
+    validatePolar(force); // make sure the force is a valid polar
+    // addTempVec(loc, force,"White", LIFE, SCALE_FORCE); // show the force
+    var l = asCart(loc); // make sure the location is in cartesian form
+    var toCenter = asPolar(vector(this.x - l.x, this.y - l.y));
+    var pheta = toCenter.dir - force.dir;
+    var Fv = Math.cos(pheta) * force.mag;
+    var Fa = Math.sin(pheta) * force.mag;
+    var accel = asPolar(toCenter); // copy the direction to center
+    accel.mag = Fv / this.mass; // now use F = m * a in the form a = F/m
+    var deltaV = asCart(accel); // convert it to cartesian
+    this.dx += deltaV.x; // refresh the box delta V
+    this.dy += deltaV.y;
+    var accelA = Fa / (toCenter.mag * this.mass); // for the angular component get the rotational acceleration
+    this.dr += accelA; // now add that to the box delta r
+}
+
+function refresh()
+{
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(INSET, INSET, canvas.width - (INSET * 2), canvas.height - (INSET * 2));
+    ctx.strokeRect(INSET, INSET, canvas.width - (INSET * 2), canvas.height - (INSET * 2));
+    box.refresh();
+    box.draw();
+    if (mouse.buttonRaw & 1)
+    {
+        var force = asPolar(vector(mouse.x - lx, mouse.y - ly));
+        force.mag *= box.mass * 0.1;
+        box.applyForce(force,vector(mouse.x, mouse.y));
+        addTempVec(vector(mouse.x, mouse.y), asPolar(vector(mouse.x - lx, mouse.y - ly)), "Cyan", LIFE, 5);
+    }
+    lx = mouse.x;
+    ly = mouse.y;
+    for (var i = 0; i < 4; ++i)
+    {
+        var p = box.getPoint(i);
+        // only do one collision per frame or we will end up adding energy
+        if (p.pos.x < INSET)
+        {
+            box.x += (INSET) - p.pos.x;
+            doCollision(p, 3);
+        }
+        else if (p.pos.x > (canvas.width - INSET))
+        {
+            box.x += (canvas.width - INSET) - p.pos.x;
+            doCollision(p, 1);
+        }
+        else if (p.pos.y < INSET)
+        {
+            box.y += (INSET) - p.pos.y;
+            doCollision(p, 0);
+        }
+        else if (p.pos.y > (canvas.height - INSET))
+        {
+            box.y += (canvas.height - INSET) - p.pos.y;
+            doCollision(p, 2);
+        }
+        drawVec(p.pos, p.velocity, "red");
+    }
+    drawTempVecs();
+    ctx.globalAlpha = 1;
+    drawText(box.getDesc(), canvas.width / 2, FONT_SIZE, FONT, FONT_SIZE, "white");
+    drawText("Click and drag to apply force to the box", canvas.width / 2, FONT_SIZE + 17, FONT, 14, "white");
+
+    window.requestAnimationFrame(refresh);
+}
+</script>
+<canvas></canvas>
+<button></button>
